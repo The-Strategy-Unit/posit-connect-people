@@ -1,0 +1,69 @@
+---
+title: "Lookup: Posit Connect People"
+date: "last-modified"
+date-format: D MMM YYYY HH:mm
+format: html
+execute:
+  echo: false
+---
+
+```{r}
+#| label: check-env-vars
+#| results: "asis"
+required_env_vars <- c("CONNECT_SERVER", "CONNECT_API_KEY")
+if (any(Sys.getenv(required_env_vars) == "")) {
+  cat("One of the following environment variables was not set, so exiting \n\n")
+  cat(paste("*", required_env_vars, collapse = "\n"), "\n\n")
+  knitr::knit_exit() 
+}
+```
+
+```{r}
+#| label: prepare-workspace
+#| include: false
+list.files("R", "\\.R$", , TRUE) |> purrr::walk(source)
+server_name <- Sys.getenv("CONNECT_SERVER")
+people_path <- glue::glue("{server_name}connect/#/people/")
+dat <- get_all_users_groups()
+```
+
+## Purpose
+
+A quick lookup of [users and groups](`r people_path`) on the server `r server_name`.
+
+## By user
+
+```{r}
+#| label: by-user
+dat |>
+  dplyr::select(username, group) |> 
+  dplyr::arrange(username, group) |> 
+  reactable::reactable(
+    filterable = TRUE,
+    groupBy = "username"
+  )
+```
+
+## By group
+
+```{r}
+#| label: by-group
+dat |>
+  dplyr::select(group, username) |> 
+  dplyr::arrange(group, username) |> 
+  reactable::reactable(
+    filterable = TRUE,
+    groupBy = "group"
+  )
+```
+
+## All data
+
+One row per user and group.
+
+```{r}
+#| label: all-data
+dat |>
+  dplyr::arrange(username, group) |> 
+  reactable::reactable(filterable = TRUE)
+```
