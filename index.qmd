@@ -1,10 +1,13 @@
 ---
-title: "Lookup: Posit Connect People"
+title: 'Lookup: Posit Connect People'
 date: "last-modified"
 date-format: D MMM YYYY HH:mm
 format: html
 execute:
   echo: false
+resource_files:
+- R/api.R
+- R/table.R
 ---
 
 ```{r}
