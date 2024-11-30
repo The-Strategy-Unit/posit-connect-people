@@ -32,7 +32,7 @@ dat <- get_all_users_groups()
 
 ## Purpose
 
-A quick lookup of [users and groups](`r people_path`) on the server `r server_name`.
+A quick lookup of [users and groups](`r people_path`) on the server `r server_name`. Find [the source on GitHub](https://github.com/The-Strategy-Unit/posit-connect-people/).
 
 ## By user
 
