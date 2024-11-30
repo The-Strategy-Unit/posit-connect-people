@@ -28,7 +28,7 @@ list.files("R", "\\.R$", , TRUE) |> purrr::walk(source)
 server_name <- Sys.getenv("CONNECT_SERVER")
 people_path <- glue::glue("{server_name}connect/#/people/")
 dat <- get_all_users_groups() |> 
-  tidyr::replace_na(list(username = "no user", group = "no group"))
+  tidyr::replace_na(list(username = "[No user]", group = "[No group]"))
 ```
 
 ## Purpose
@@ -41,9 +41,26 @@ A quick lookup of [users and groups](`r people_path`) on the server `r server_na
 #| label: by-user
 dat |>
   dplyr::select(username, group) |> 
+  dplyr::arrange(tolower(username), tolower(group)) |> 
+  #dplyr::mutate(dplyr::across(dplyr::where(is.factor), as.factor)) |> 
   reactable::reactable(
-    filterable = TRUE,
-    groupBy = "username"
+    groupBy = "username",
+    columns = list(
+      username = reactable::colDef(
+        filterable = TRUE,
+        filterInput = function(values, name) {
+          htmltools::tags$select(
+            # Set to undefined to clear the filter
+            onchange = sprintf("Reactable.setFilter('cars-select', '%s', event.target.value || undefined)", name),
+            # "All" has an empty value to clear the filter, and is the default option
+            htmltools::tags$option(value = "", "All"),
+            lapply(unique(values), htmltools::tags$option),
+            "aria-label" = sprintf("Filter %s", name),
+            style = "width: 100%; height: 28px;"
+          )
+        }
+      )
+    )
   )
 ```
 
@@ -53,20 +70,43 @@ dat |>
 #| label: by-group
 dat |>
   dplyr::select(group, username) |>
-  dplyr::arrange(group) |> 
+  dplyr::arrange(tolower(group), tolower(username)) |> 
   reactable::reactable(
-    filterable = TRUE,
-    groupBy = "group"
+    groupBy = "group",
+    columns = list(
+      group = reactable::colDef(
+        filterable = TRUE,
+        filterInput = function(values, name) {
+          htmltools::tags$select(
+            # Set to undefined to clear the filter
+            onchange = sprintf("Reactable.setFilter('cars-select', '%s', event.target.value || undefined)", name),
+            # "All" has an empty value to clear the filter, and is the default option
+            htmltools::tags$option(value = "", "All"),
+            lapply(unique(values), htmltools::tags$option),
+            "aria-label" = sprintf("Filter %s", name),
+            style = "width: 100%; height: 28px;"
+          )
+        }
+      )
+    )
   )
 ```
 
 ## All data
 
-One row per user and group.
-
 ```{r}
 #| label: all-data
-dat |>
-  dplyr::arrange(username, group) |> 
-  reactable::reactable(filterable = TRUE)
+htmltools::browsable(
+  htmltools::tagList(
+    htmltools::tags$button(
+      "Download CSV",
+      onclick = "Reactable.downloadDataCSV('data-table', 'posit-connect-people.csv')"
+    ),
+    reactable::reactable(
+      dat |> dplyr::arrange(tolower(username), tolower(group)),
+      filterable = TRUE,
+      elementId = "data-table",
+    )
+  )
+)
 ```
