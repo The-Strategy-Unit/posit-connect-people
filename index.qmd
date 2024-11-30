@@ -27,7 +27,8 @@ if (any(Sys.getenv(required_env_vars) == "")) {
 list.files("R", "\\.R$", , TRUE) |> purrr::walk(source)
 server_name <- Sys.getenv("CONNECT_SERVER")
 people_path <- glue::glue("{server_name}connect/#/people/")
-dat <- get_all_users_groups()
+dat <- get_all_users_groups() |> 
+  tidyr::replace_na(list(username = "no user", group = "no group"))
 ```
 
 ## Purpose
