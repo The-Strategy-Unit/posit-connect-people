@@ -40,7 +40,6 @@ A quick lookup of [users and groups](`r people_path`) on the server `r server_na
 #| label: by-user
 dat |>
   dplyr::select(username, group) |> 
-  dplyr::arrange(username, group) |> 
   reactable::reactable(
     filterable = TRUE,
     groupBy = "username"
@@ -52,8 +51,8 @@ dat |>
 ```{r}
 #| label: by-group
 dat |>
-  dplyr::select(group, username) |> 
-  dplyr::arrange(group, username) |> 
+  dplyr::select(group, username) |>
+  dplyr::arrange(group) |> 
   reactable::reactable(
     filterable = TRUE,
     groupBy = "group"
