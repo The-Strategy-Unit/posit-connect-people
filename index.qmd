@@ -6,8 +6,7 @@ format: html
 execute:
   echo: false
 resource_files:
-- R/api.R
-- R/table.R
+ - R/api.R
 ---
 
 ```{r}
