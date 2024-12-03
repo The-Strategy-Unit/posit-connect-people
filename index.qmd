@@ -42,7 +42,6 @@ A quick lookup of [users and groups](`r people_path`) on the server `r server_na
 dat |>
   dplyr::select(username, group) |> 
   dplyr::arrange(tolower(username), tolower(group)) |> 
-  #dplyr::mutate(dplyr::across(dplyr::where(is.factor), as.factor)) |> 
   reactable::reactable(
     groupBy = "username",
     columns = list(
