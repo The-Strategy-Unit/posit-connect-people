@@ -7,14 +7,6 @@ check_env_vars <- function(required_env_vars) {
   }
 }
 
-# Simple count of non-NA users or groups
-get_n <- function(client = get_client(), var) {
-  get_user_groups(client) |>
-    dplyr::filter(!is.na({{ var }})) |>
-    dplyr::distinct({{ var }}) |>
-    nrow()
-}
-
 # Create a {DT} datatable with common settings
 create_dt <- function(dat, type = c("users", "content")) {
   dat |>
