@@ -35,12 +35,12 @@ content <- get_content(client)
 
 n_users <- users_groups |>
   dplyr::filter(username != "[none]") |> 
-  dplyr::distinct() |>
+  dplyr::distinct(username) |>
   nrow()
 
 n_groups <- users_groups |>
   dplyr::filter(group != "[none]") |> 
-  dplyr::distinct() |>
+  dplyr::distinct(group) |>
   nrow()
 
 n_content <- nrow(content)
