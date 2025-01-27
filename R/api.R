@@ -22,7 +22,7 @@ get_group_membership <- function(client = get_client()) {
     purrr::set_names(groups[["name"]]) |>
     purrr::map(\(guid) connectapi::get_group_members(client, guid))
 
-  # Retain empty groups by giving them '[None]' as a user
+  # Retain empty groups by giving them '[none]' as a user
   for (group in names(groups_members)) {
     df_is_empty <- nrow(groups_members[[group]]) == 0
     if (df_is_empty) {  # i.e. no users were returned
