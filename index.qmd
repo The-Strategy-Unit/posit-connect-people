@@ -1,110 +1,79 @@
 ---
-title: 'Lookup: Posit Connect People'
+title: "Lookup: Posit Connect People and Content"
 date: "last-modified"
 date-format: D MMM YYYY HH:mm
-format: html
+author: Data Science Team, The Strategy Unit
+format:
+  html:
+    page-layout: full
 execute:
   echo: false
 resource_files:
  - R/api.R
+ - R/utils.R
 ---
 
 ```{r}
 #| label: check-env-vars
 #| results: "asis"
-required_env_vars <- c("CONNECT_SERVER", "CONNECT_API_KEY")
-if (any(Sys.getenv(required_env_vars) == "")) {
-  cat("One of the following environment variables was not set, so exiting \n\n")
-  cat(paste("*", required_env_vars, collapse = "\n"), "\n\n")
-  knitr::knit_exit() 
-}
+
+list.files("R", "\\.R$", , TRUE) |> purrr::walk(source)
+check_env_vars(c("CONNECT_SERVER", "CONNECT_API_KEY"))
 ```
 
 ```{r}
-#| label: prepare-workspace
+#| label: prepare-variables
 #| include: false
-list.files("R", "\\.R$", , TRUE) |> purrr::walk(source)
+
 server_name <- Sys.getenv("CONNECT_SERVER")
 people_path <- glue::glue("{server_name}connect/#/people/")
-dat <- get_all_users_groups() |> 
-  tidyr::replace_na(list(username = "[No user]", group = "[No group]"))
+content_path <- glue::glue("{server_name}connect/#/content/")
+
+client <- get_client()
+users_groups <- get_all_users_groups(client)
+content <- get_content(client)
+
+n_users <- users_groups |>
+  dplyr::filter(username != "[none]") |> 
+  dplyr::distinct() |>
+  nrow()
+
+n_groups <- users_groups |>
+  dplyr::filter(group != "[none]") |> 
+  dplyr::distinct() |>
+  nrow()
+
+n_content <- nrow(content)
 ```
 
 ## Purpose
 
-A quick lookup of [users and groups](`r people_path`) on the server `r server_name`. Find [the source on GitHub](https://github.com/The-Strategy-Unit/posit-connect-people/).
+This page contains tabular lookups of [users](`r people_path`) and [content](`r content_path`) on the server [`r server_name`](`r server_name`). Find [the source on GitHub](https://github.com/The-Strategy-Unit/posit-connect-people/).
 
-## By user
+## Users and groups
+
+This table shows one row per user and group. There are `r n_users` users and `r n_groups` groups. Note that it's possible for users not to have a group and vice versa. You can search, sort and filter the data and click the 'CSV' button to download the current view.
 
 ```{r}
-#| label: by-user
-dat |>
-  dplyr::select(username, group) |> 
-  dplyr::arrange(tolower(username), tolower(group)) |> 
-  reactable::reactable(
-    groupBy = "username",
-    columns = list(
-      username = reactable::colDef(
-        filterable = TRUE,
-        filterInput = function(values, name) {
-          htmltools::tags$select(
-            # Set to undefined to clear the filter
-            onchange = sprintf("Reactable.setFilter('cars-select', '%s', event.target.value || undefined)", name),
-            # "All" has an empty value to clear the filter, and is the default option
-            htmltools::tags$option(value = "", "All"),
-            lapply(unique(values), htmltools::tags$option),
-            "aria-label" = sprintf("Filter %s", name),
-            style = "width: 100%; height: 28px;"
-          )
-        }
-      )
-    )
-  )
+#| label: users-table
+
+users_groups |> 
+  dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
+  create_dt("users")
 ```
 
-## By group
+## Content
+
+This table shows one row per content item. There are `r n_content` content items. You can search, sort and filter the data and click the 'CSV' button to download the current view. Click the links in the `*_url` columns to open the item with or without the Posit Connect dashboard framing the content.
 
 ```{r}
-#| label: by-group
-dat |>
-  dplyr::select(group, username) |>
-  dplyr::arrange(tolower(group), tolower(username)) |> 
-  reactable::reactable(
-    groupBy = "group",
-    columns = list(
-      group = reactable::colDef(
-        filterable = TRUE,
-        filterInput = function(values, name) {
-          htmltools::tags$select(
-            # Set to undefined to clear the filter
-            onchange = sprintf("Reactable.setFilter('cars-select', '%s', event.target.value || undefined)", name),
-            # "All" has an empty value to clear the filter, and is the default option
-            htmltools::tags$option(value = "", "All"),
-            lapply(unique(values), htmltools::tags$option),
-            "aria-label" = sprintf("Filter %s", name),
-            style = "width: 100%; height: 28px;"
-          )
-        }
-      )
-    )
-  )
-```
+#| label: content-table
 
-## All data
-
-```{r}
-#| label: all-data
-htmltools::browsable(
-  htmltools::tagList(
-    htmltools::tags$button(
-      "Download CSV",
-      onclick = "Reactable.downloadDataCSV('data-table', 'posit-connect-people.csv')"
-    ),
-    reactable::reactable(
-      dat |> dplyr::arrange(tolower(username), tolower(group)),
-      filterable = TRUE,
-      elementId = "data-table",
-    )
-  )
-)
+content |> 
+  dplyr::mutate(
+    content_url = glue::glue("<a href='{content_url}'>Link</a>"),
+    dashboard_url = glue::glue("<a href='{dashboard_url}'>Link</a>"),
+    dplyr::across(dplyr::where(is.character), as.factor)
+  ) |> 
+  create_dt("content")
 ```
