@@ -54,9 +54,17 @@ get_all_users <- function(
   users <- connectapi::get_users(client) |>
     dplyr::mutate(
       name = glue::glue("{first_name} {last_name}") |>
-        stringr::str_squish()
+        stringr::str_squish(),
+      email = tolower(email)
     ) |>
-    dplyr::select(guid, username, name, user_role, active_time)
+    dplyr::select(
+      guid,
+      username,
+      name,
+      email,
+      user_role,
+      active_time
+    )
 
   if (!include_guid) dplyr::select(users, -guid) else return(users)
 
