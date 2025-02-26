@@ -71,9 +71,17 @@ This table shows one row per content item. There are `r n_content` content items
 
 content |> 
   dplyr::mutate(
-    content_url = glue::glue("<a href='{content_url}'>Link</a>"),
-    dashboard_url = glue::glue("<a href='{dashboard_url}'>Link</a>"),
+    content_link = glue::glue("<a href='{content_url}'>Link</a>"),
+    dashboard_link = glue::glue("<a href='{dashboard_url}'>Link</a>"),
     dplyr::across(dplyr::where(is.character), as.factor)
   ) |> 
-  create_dt("content")
+  create_dt(
+    "content",
+    columnDefs = list(
+      list(
+        visible = FALSE,
+        targets = c("content_url", "dashboard_url")
+      )
+    )
+  )
 ```
