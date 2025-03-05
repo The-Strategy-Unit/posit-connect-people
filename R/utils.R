@@ -8,7 +8,11 @@ check_env_vars <- function(required_env_vars) {
 }
 
 # Create a {DT} datatable with common settings
-create_dt <- function(dat, type = c("users", "content")) {
+create_dt <- function(
+    dat,
+    type = c("users", "content"),
+    ...  # pass further options
+) {
   dat |>
     DT::datatable(
       filter = "top",
@@ -23,7 +27,8 @@ create_dt <- function(dat, type = c("users", "content")) {
             extend = "csv",
             title = glue::glue("{Sys.Date()}_su-posit-connect_{type}-lookup")
           )
-        )
+        ),
+        ...
       )
     )
 }
