@@ -63,7 +63,8 @@ get_all_users <- function(
       name,
       email,
       user_role,
-      active_time
+      active_time,
+      locked
     )
 
   if (!include_guid) dplyr::select(users, -guid) else return(users)
@@ -88,6 +89,7 @@ get_all_users_groups <- function(client = get_client()) {
     ) |>
     dplyr::select(-active_time) |>
     dplyr::mutate(
+      dplyr::across(tidyselect::everything(), as.character),
       dplyr::across(
         tidyselect::everything(),
         \(column) tidyr::replace_na(column, "[none]")

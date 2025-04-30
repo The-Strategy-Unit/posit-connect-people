@@ -34,12 +34,22 @@ users_groups <- get_all_users_groups(client)
 content <- get_content(client)
 
 n_users <- users_groups |>
-  dplyr::filter(username != "[none]") |> 
+  dplyr::filter(username != "[none]" & locked == "FALSE") |> 
+  dplyr::distinct(username) |>
+  nrow()
+
+n_users_locked <- users_groups |>
+  dplyr::filter(username != "[none]" & locked == "TRUE") |> 
   dplyr::distinct(username) |>
   nrow()
 
 n_groups <- users_groups |>
-  dplyr::filter(group != "[none]") |> 
+  dplyr::filter(group != "[none]" & username != "[none]") |> 
+  dplyr::distinct(group) |>
+  nrow()
+
+n_groups_empty <- users_groups |>
+  dplyr::filter(group != "[none]" & username == "[none]") |>
   dplyr::distinct(group) |>
   nrow()
 
@@ -52,7 +62,7 @@ This page contains tabular lookups of [users](`r people_path`) and [content](`r 
 
 ## Users and groups
 
-This table shows one row per user and group. There are `r n_users` users and `r n_groups` groups. Note that it's possible for users not to have a group and vice versa. You can search, sort and filter the data and click the 'CSV' button to download the current view.
+This table shows one row per user and group. Note that it's possible for users not to have a group and vice versa. There are `r n_users` users (plus `r n_users_locked` locked users) and `r n_groups` groups (plus `r n_groups_empty` empty groups). You can search, sort and filter the data and click the 'CSV' button to download the current view.
 
 ```{r}
 #| label: users-table
@@ -71,17 +81,9 @@ This table shows one row per content item. There are `r n_content` content items
 
 content |> 
   dplyr::mutate(
-    content_link = glue::glue("<a href='{content_url}'>Link</a>"),
-    dashboard_link = glue::glue("<a href='{dashboard_url}'>Link</a>"),
+    content_url = glue::glue("<a href='{content_url}'>Link</a>"),
+    dashboard_url = glue::glue("<a href='{dashboard_url}'>Link</a>"),
     dplyr::across(dplyr::where(is.character), as.factor)
   ) |> 
-  create_dt(
-    "content",
-    columnDefs = list(
-      list(
-        visible = FALSE,
-        targets = c("content_url", "dashboard_url")
-      )
-    )
-  )
+  create_dt("content")
 ```
