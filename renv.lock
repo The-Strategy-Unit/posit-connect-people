@@ -619,7 +619,7 @@
     },
     "rsconnect": {
       "Package": "rsconnect",
-      "Version": "1.2.2",
+      "Version": "1.3.4",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -638,7 +638,7 @@
         "tools",
         "yaml"
       ],
-      "Hash": "77e9ed1307e84cd7ca1c7fb2cd7bbfe2"
+      "Hash": "315454d2f50d117ef58691d0bf50fe63"
     },
     "rstudioapi": {
       "Package": "rstudioapi",
