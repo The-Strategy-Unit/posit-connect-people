@@ -101,12 +101,20 @@ get_all_users_groups <- function(client = get_client()) {
 
 # Returns a dataframe of content details, one row per content item
 get_content <- function(client = get_client()) {
-  client |>
-    connectapi::get_content() |>
+
+  content <- connectapi::get_content(client)
+
+  if ("tags" %in% names(content)) {  # doesn't exist if no content has tags
+    content <- content |>
+      dplyr::mutate(
+        has_tags = purrr::map(tags, \(x) !is.null(x)),
+        has_tags = unlist(has_tags),
+      )
+  }
+
+  content |>
     tidyr::hoist(owner, "username") |>
     dplyr::mutate(
-      has_tags = purrr::map(tags, \(x) !is.null(x)),
-      has_tags = unlist(has_tags),
       app_mode = dplyr::if_else(
         content_category != "",
         glue::glue("{app_mode} ({content_category})"),
@@ -114,16 +122,25 @@ get_content <- function(client = get_client()) {
       )
     ) |>
     dplyr::select(
+      tidyselect::any_of(
+        c(
+          "id",
+          "name",
+          "title",
+          "description",
+          "app_mode",
+          "has_tags",
+          "last_deployed_time",
+          "username",
+          "content_url",
+          "dashboard_url"
+        )
+      )
+    ) |>
+    dplyr::rename(
       content_id = id,
-      name,
-      title,
-      description,
       mode = app_mode,
-      has_tags,
-      last_deployed_time,
-      owner_username = username,
-      content_url,
-      dashboard_url
+      owner_username = username
     ) |>
     dplyr::arrange(dplyr::desc(as.numeric(content_id))) |>
     dplyr::mutate(
@@ -137,4 +154,5 @@ get_content <- function(client = get_client()) {
         \(column) tidyr::replace_na(column, "[none]")
       )
     )
+
 }
