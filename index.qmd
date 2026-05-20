@@ -34,17 +34,17 @@ users_groups <- get_all_users_groups(client)
 content <- get_content(client)
 
 n_users <- users_groups |>
-  dplyr::filter(username != "[none]" & locked == "FALSE") |> 
+  dplyr::filter(username != "[none]" & locked == "FALSE") |>
   dplyr::distinct(username) |>
   nrow()
 
 n_users_locked <- users_groups |>
-  dplyr::filter(username != "[none]" & locked == "TRUE") |> 
+  dplyr::filter(username != "[none]" & locked == "TRUE") |>
   dplyr::distinct(username) |>
   nrow()
 
 n_groups <- users_groups |>
-  dplyr::filter(group != "[none]" & username != "[none]") |> 
+  dplyr::filter(group != "[none]" & username != "[none]") |>
   dplyr::distinct(group) |>
   nrow()
 
@@ -67,7 +67,7 @@ This table shows one row per user and group. Note that it's possible for users n
 ```{r}
 #| label: users-table
 
-users_groups |> 
+users_groups |>
   dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
   create_dt("users")
 ```
@@ -79,11 +79,11 @@ This table shows one row per content item. There are `r n_content` content items
 ```{r}
 #| label: content-table
 
-content |> 
+content |>
   dplyr::mutate(
     content_url = glue::glue("<a href='{content_url}'>Link</a>"),
     dashboard_url = glue::glue("<a href='{dashboard_url}'>Link</a>"),
     dplyr::across(dplyr::where(is.character), as.factor)
-  ) |> 
+  ) |>
   create_dt("content")
 ```
