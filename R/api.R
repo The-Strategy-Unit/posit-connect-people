@@ -1,7 +1,7 @@
 # Make connection to Connect client
 get_client <- function(
-    server_name = Sys.getenv("CONNECT_SERVER"),
-    api_key = Sys.getenv("CONNECT_API_KEY")
+  server_name = Sys.getenv("CONNECT_SERVER"),
+  api_key = Sys.getenv("CONNECT_API_KEY")
 ) {
   connectapi::connect(server_name, api_key)
 }
@@ -15,7 +15,6 @@ get_groups <- function(client = get_client()) {
 
 # Return a list of dataframes of user information, one named element per group
 get_group_membership <- function(client = get_client()) {
-
   groups <- get_groups(client)
 
   groups_members <- groups[["guid"]] |>
@@ -25,32 +24,29 @@ get_group_membership <- function(client = get_client()) {
   # Retain empty groups by giving them '[none]' as a user
   for (group in names(groups_members)) {
     df_is_empty <- nrow(groups_members[[group]]) == 0
-    if (df_is_empty) {  # i.e. no users were returned
+    if (df_is_empty) {
+      # i.e. no users were returned
       groups_members[[group]] <- tibble::tibble(username = "[none]")
     }
   }
 
   groups_members
-
 }
 
 # Return a dataframe with one row per username and group membership
 get_user_groups <- function(client = get_client()) {
-
   group_membership <- get_group_membership(client)
 
   group_membership |>
     purrr::list_rbind(names_to = "group") |>
     dplyr::select(username, group)
-
 }
 
 # Return a dataframe of user details (username, name, user_role, active_time)
 get_all_users <- function(
-    client = get_client(),
-    include_guid = FALSE
+  client = get_client(),
+  include_guid = FALSE
 ) {
-
   users <- connectapi::get_users(client) |>
     dplyr::mutate(
       name = glue::glue("{first_name} {last_name}") |>
@@ -68,12 +64,10 @@ get_all_users <- function(
     )
 
   if (!include_guid) dplyr::select(users, -guid) else return(users)
-
 }
 
 # Returns a dataframe of user details with one row per user and group
 get_all_users_groups <- function(client = get_client()) {
-
   all_users <- get_all_users(client)
   user_groups <- get_user_groups(client)
 
@@ -96,23 +90,32 @@ get_all_users_groups <- function(client = get_client()) {
       )
     ) |>
     dplyr::arrange(tolower(username), tolower(group))
-
 }
 
 # Returns a dataframe of content details, one row per content item
 get_content <- function(client = get_client()) {
+  raw <- connectapi::get_content(client)
 
-  content <- connectapi::get_content(client)
+  # Fix type mismatch: cluster_name (and potentially others) may come back
+  # as logical NA for some content items, causing bind_rows() to fail
+  raw_edited <- raw |>
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::where(\(x) is.logical(x) && all(is.na(x))),
+        as.character
+      )
+    )
 
-  if ("tags" %in% names(content)) {  # doesn't exist if no content has tags
-    content <- content |>
+  if ("tags" %in% names(raw_edited)) {
+    # doesn't exist if no content has tags
+    raw_edited <- raw_edited |>
       dplyr::mutate(
         has_tags = purrr::map(tags, \(x) !is.null(x)),
-        has_tags = unlist(has_tags),
+        has_tags = unlist(has_tags)
       )
   }
 
-  content |>
+  raw_edited |>
     tidyr::hoist(owner, "username") |>
     dplyr::mutate(
       app_mode = dplyr::if_else(
@@ -154,5 +157,4 @@ get_content <- function(client = get_client()) {
         \(column) tidyr::replace_na(column, "[none]")
       )
     )
-
 }
