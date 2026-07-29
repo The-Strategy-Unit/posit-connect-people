@@ -107,10 +107,11 @@ get_content <- function(client = get_client()) {
     )
 
   if ("tags" %in% names(raw_edited)) {
-    # doesn't exist if no content has tags
+    # Only run if there is a tags element
     raw_edited <- raw_edited |>
       dplyr::mutate(
-        has_tags = purrr::map(tags, \(x) !is.null(x)),
+        # Empty list() if no tags
+        has_tags = purrr::map(tags, \(x) length(x) > 0),
         has_tags = unlist(has_tags)
       )
   }
