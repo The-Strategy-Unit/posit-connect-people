@@ -5,6 +5,10 @@
 index_files/
 README_files/
 
+# Quarto
+/.quarto/
+**/*.quarto_ipynb
+
 # History files
 .Rhistory
 .Rapp.history
@@ -54,5 +58,3 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
-
-/.quarto/
