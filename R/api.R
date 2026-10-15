@@ -19,7 +19,17 @@ get_group_membership <- function(client = get_client()) {
 
   groups_members <- groups[["guid"]] |>
     purrr::set_names(groups[["name"]]) |>
-    purrr::map(\(guid) connectapi::get_group_members(client, guid))
+    purrr::map(function(guid) {
+      res <- client$GET(
+        paste0("v1/groups/", guid, "/members"),
+        query = list(
+          page_number = 1,
+          page_size = 100
+        )
+      )
+
+      dplyr::bind_rows(res$results)
+    })
 
   # Retain empty groups by giving them '[none]' as a user
   for (group in names(groups_members)) {
