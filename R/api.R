@@ -24,7 +24,7 @@ get_members_of_group <- function(client = get_client(), guid, page_size = 100) {
   while (retrieved < total) {
 
     res <- client$GET(
-      paste0("v1/groups/", guid, "/members"),
+      glue::glue("v1/groups/{guid}/members"),
       query = list(
         page_number = page,
         page_size = page_size
