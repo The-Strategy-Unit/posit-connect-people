@@ -13,7 +13,8 @@ get_groups <- function(client = get_client()) {
     dplyr::select(guid, name)
 }
 
-get_members_of_group <- function(client, guid, page_size = 100) {
+# Return a list (one element per group) of dataframes (one row per user)
+get_members_of_group <- function(client = get_client(), guid, page_size = 100) {
 
   page <- 1
   results <- list()
