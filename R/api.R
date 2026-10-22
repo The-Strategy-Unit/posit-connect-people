@@ -31,10 +31,10 @@ get_members_of_group <- function(client = get_client(), guid, page_size = 100) {
       )
     )
 
-    results[[page]] <- dplyr::bind_rows(res$results)
+    results[[page]] <- dplyr::bind_rows(res[["results"]])
 
     retrieved <- retrieved + nrow(results[[page]])
-    total <- res$total
+    total <- res[["total"]]
 
     page <- page + 1
   }
