@@ -13,13 +13,43 @@ get_groups <- function(client = get_client()) {
     dplyr::select(guid, name)
 }
 
+# Return a list (one element per group) of dataframes (one row per user)
+get_members_of_group <- function(client = get_client(), guid, page_size = 100) {
+
+  page <- 1
+  results <- list()
+  total <- Inf
+  retrieved <- 0
+
+  while (retrieved < total) {
+
+    res <- client$GET(
+      glue::glue("v1/groups/{guid}/members"),
+      query = list(
+        page_number = page,
+        page_size = page_size
+      )
+    )
+
+    results[[page]] <- dplyr::bind_rows(res[["results"]])
+
+    retrieved <- retrieved + nrow(results[[page]])
+    total <- res[["total"]]
+
+    page <- page + 1
+  }
+
+  dplyr::bind_rows(results)
+}
+
+
 # Return a list of dataframes of user information, one named element per group
 get_group_membership <- function(client = get_client()) {
   groups <- get_groups(client)
 
   groups_members <- groups[["guid"]] |>
     purrr::set_names(groups[["name"]]) |>
-    purrr::map(\(guid) connectapi::get_group_members(client, guid))
+    purrr::map(\(guid) get_members_of_group(client, guid))
 
   # Retain empty groups by giving them '[none]' as a user
   for (group in names(groups_members)) {
